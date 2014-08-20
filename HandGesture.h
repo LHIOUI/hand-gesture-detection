@@ -17,6 +17,7 @@ public:
     vector <vector <int> >   hullInt;
     vector <vector <Vec4i> > defects;
     vector <Point> fingerTips;
+    vector <int> fingerNumbers;
     int  frameNum;
     int  numToDraw;
     int  nDefects;
@@ -39,9 +40,10 @@ private:
     void  removeOtherPoints(vector<Vec4i>defects);
     void  checkForOneFinger();
     void  compute();
+    void  removeOtherFingerTips();
 
     int   numNoFinger;
-    vector <int> fingerNumbers;
+
 };
 
 #endif // HANDGESTURE_H

@@ -124,10 +124,11 @@ void HandGesture::getFingerTips()
 
 void HandGesture::getFingerNumber()
 {
-    if (bounRect.height > m.frame.rows / 2 && numNoFinger > 12
-            && isHand()) {
+    removeOtherFingerTips();
+    if (/*bounRect.height > m.frame.rows / 2 &&*/ numNoFinger > 2
+            /*&& isHand()*/) {
         fingerNumbers.push_back(fingerTips.size());
-        if (frameNum > 12) {
+        if (frameNum > 5) {
             numNoFinger = 0;
             frameNum    = 0;
             compute();
@@ -174,10 +175,31 @@ void HandGesture::compute()
         flag[fingerNumbers[i]]++;
     }
     int max = 0;
-    for (i = 1; i < 7; i++) {
+    for (i = 0; i < 7; i++) {
         if (flag[i] > max) {
             max = flag[i];
             numToDraw = i;
         }
     }
+//    printf("*****  fingerNumber:\n");
+//    for (i = 0; i < fingerNumbers.size(); i++)
+//        printf("%d ", fingerNumbers[i]);
+//    printf("\n************");
+//    printf("in comput(). numToDraw:%d\n", numToDraw);
+}
+
+void HandGesture::removeOtherFingerTips()
+{
+    vector <Point> newFingerTips;
+    unsigned int i, j;
+    for (i = 0; i < fingerTips.size(); i++) {
+        for (j = i; j < fingerTips.size(); j++) {
+            if (distance(fingerTips[i], fingerTips[j]) < 10 && i != j) {
+            } else {
+                newFingerTips.push_back(fingerTips[i]);
+                break;
+            }
+        }
+    }
+    fingerTips.swap(newFingerTips);
 }

@@ -18,6 +18,7 @@ Frame::Frame(QWidget *parent) :
     connect(ui->open, SIGNAL(clicked()), this, SLOT(openCamera()));
     openCamera();
     hg = HandGesture(m);
+    initMouseArea();
     on_pushButton_3_clicked();
 }
 
@@ -46,11 +47,14 @@ void Frame::readFrame()
     cv::resize(m.frame, m.frame, Size(300, 300));
     flip(m.frame, m.frame, 1);
 
+    hg.nDefects  = 0;
     switch (STATUS) {
         case COLORCOLLECTION:
             readyForPalm(&m);
+            hg.numToDraw = 0;
             break;
         case GETAVERCOLOR:
+            hg.numToDraw = 0;
             getAverageColor(&m, sCount);
             sCount++;
             if (sCount == 4) {
@@ -78,6 +82,10 @@ void Frame::readFrame()
         toD = m.frame;
     }
 
+    if (ui->checkBoxGrid->isChecked() && STATUS == GESTUREDETECT) {
+        drawGrid(&toD);
+    }
+
     if  (hg.isHand() && contourFlag && STATUS == GESTUREDETECT) {
         if (ui->checkBoxContour->isChecked())
             drawContours(toD, hg.contours, hg.cMaxId,
@@ -88,10 +96,15 @@ void Frame::readFrame()
         if (ui->checkBoxDefect->isChecked()) {
             drawConvexityDefect(&toD, hg);
         }
-        if (ui->information->isChecked()) {
-
+        if (ui->checkBoxMouse->isChecked()) {
+            drawMouseAndControl(&toD, hg);
         }
     }
+
+    if (ui->information->isChecked()) {
+        drawInformation(&toD, hg);
+    }
+    rectangle(toD, hg.bounRect, Scalar(255, 0, 0));
 
     QImage img((unsigned char *)toD.data, toD.cols,
             toD.rows, QImage::Format_RGB888);
@@ -122,10 +135,19 @@ void Frame::on_pushButton_2_clicked()
 void Frame::on_pushButton_clicked()
 {
     namedWindow("trackbars", WINDOW_AUTOSIZE);
-    createTrackbar("lower1", "trackbars", &trackLower[0][0], 255);
-    createTrackbar("upper1", "trackbars", &trackUpper[0][0], 255);
-    createTrackbar("lower2", "trackbars", &trackLower[0][1], 255);
-    createTrackbar("upper2", "trackbars", &trackUpper[0][1], 255);
-    createTrackbar("lower3", "trackbars", &trackLower[0][2], 255);
-    createTrackbar("upper3", "trackbars", &trackUpper[0][2], 255);
+    createTrackbar("low-h", "trackbars", &trackLower[0][0], 255);
+    createTrackbar("up-h", "trackbars", &trackUpper[0][0], 255);
+    createTrackbar("low-l", "trackbars", &trackLower[0][1], 255);
+    createTrackbar("up-l", "trackbars", &trackUpper[0][1], 255);
+    createTrackbar("low-s", "trackbars", &trackLower[0][2], 255);
+    createTrackbar("up-s", "trackbars", &trackUpper[0][2], 255);
+}
+
+void Frame::on_checkBoxMouse_clicked()
+{
+    if (ui->checkBoxMouse->isChecked()) {
+        ui->checkBoxGrid->setChecked(true);
+    } else {
+        ui->checkBoxGrid->setChecked(false);
+    }
 }

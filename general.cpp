@@ -1,11 +1,17 @@
 #include "general.h"
 #include "stdio.h"
+#include "stdlib.h"
+#include "string"
+#include "iostream"
+#include "sstream"
 
 vector <RecSample> recsamples;
 int  avrColor[SAMPLES][3];
 int  trackLower[SAMPLES][3];
 int  trackUpper[SAMPLES][3];
 bool contourFlag = false;
+R    area;
+R    lineRaw[9], lineCol[9];
 
 void getRecPos()
 {
@@ -127,8 +133,10 @@ void genBinary(AccessUnit *m)
 {
     Scalar lower, upper;
     int i;
-    blur(m->frame, m->frame, Size(3, 3));
-    cvtColor(m->frame, m->frame, CV_BGR2HLS);
+    Mat tmp;
+    m->frame.copyTo(tmp);
+    blur(tmp, tmp, Size(3, 3));
+    cvtColor(tmp, tmp, CV_BGR2HLS);
     for (i = 0; i < SAMPLES; i++) {
         initColor(i);
         lower = Scalar(avrColor[i][0]-trackLower[i][0],
@@ -136,12 +144,11 @@ void genBinary(AccessUnit *m)
         upper = Scalar(avrColor[i][0]+trackUpper[i][0],
             avrColor[i][1]+trackUpper[i][1], avrColor[i][2]+trackUpper[i][2]);
         m->binaryList.push_back(Mat(m->frame.rows, m->frame.cols, CV_8U));
-        inRange(m->frame, lower, upper, m->binaryList[i]);
+        inRange(tmp, lower, upper, m->binaryList[i]);
     }
-    cvtColor(m->frame, m->frame, CV_HLS2BGR);
 
-    Mat tmp(m->frame, Rect(10, 18, 30, 30));
-    tmp = Scalar(avrColor[0][0], avrColor[0][1], avrColor[0][2]);
+    Mat roi(m->frame, Rect(10, 18, 30, 30));
+    roi = Scalar(avrColor[0][0], avrColor[0][1], avrColor[0][2]);
 
     m->binaryList[0].copyTo(m->binary);
     for (i = 1; i < SAMPLES; i++) {
@@ -188,6 +195,9 @@ void genContours(AccessUnit *m, HandGesture *hg)
         if (hg->isHand()) {
             hg->getFingerTips();
         }
+    } else {
+        hg->bounRect = Rect(0, 0, 0, 0);
+        hg->fingerTips.clear();
     }
 }
 
@@ -200,9 +210,97 @@ void drawConvexityDefect(Mat *toD, HandGesture hg)
         Point pEnd(hg.contours[hg.cMaxId][v[1]]);
         Point pFar(hg.contours[hg.cMaxId][v[2]]);
 
-        circle(*toD, pStart, 4, Scalar(255, 0, 0), 4);
-        circle(*toD, pEnd, 4, Scalar(0, 255, 0), 4);
-        circle(*toD, pFar, 4, Scalar(0, 0, 255), 4);
+        circle(*toD, pStart, 3, Scalar(255, 0, 0), 2);
+        circle(*toD, pEnd, 3, Scalar(255, 0, 0), 2);
+        circle(*toD, pFar, 3, Scalar(0, 255, 0), 2);
         d++;
+    }
+}
+
+string int2String(int a)
+{
+    char s[5];
+    sprintf(s, "%d", a);
+    return s;
+}
+
+string bool2String(bool a)
+{
+    if (a) {
+        return "true";
+    } else {
+        return "false";
+    }
+}
+
+void drawInformation(Mat *toD, HandGesture hg)
+{
+    int fontFace = FONT_HERSHEY_PLAIN;
+    Scalar color(245,200,200);
+//    int xPos = toD->cols/1.5;
+//    int yPos = toD->rows/2;
+    int xPos = 240;
+    int yPos = 6;
+    float fontSize = 0.7f;
+    int lineChange = 14;
+    string info = "Figures info:";
+    putText(*toD, info, Point(yPos, xPos), fontFace, fontSize, color);
+    xPos += lineChange;
+    info  = string("Number of defects: ") + string(int2String(hg.nDefects)) ;
+    putText(*toD, info, Point(yPos, xPos), fontFace, fontSize, color);
+    xPos += lineChange;
+    info = string("Is hand: ") + string(bool2String(hg.isHand()));
+    putText(*toD, info, Point(yPos, xPos), fontFace, fontSize, color);
+    xPos += lineChange;
+    info = string("Command Number is: ") + string(int2String(hg.numToDraw));
+    putText(*toD, info, Point(yPos, xPos), fontFace, fontSize, color);
+}
+
+
+void drawGrid(Mat *toD)
+{
+    rectangle(*toD, area.start, area.end, Scalar(240, 236, 124), 2);
+    int i;
+    for (i = 0; i < 9; i++) {
+        line(*toD, lineRaw[i].start, lineRaw[i].end, Scalar(172, 224, 154));
+        line(*toD, lineCol[i].start, lineCol[i].end, Scalar(172, 224, 154));
+    }
+}
+
+
+void initMouseArea()
+{
+    area.start = Point(125, 125);
+    area.end = Point(175, 175);
+    int i;
+    for (i = 0; i < 9; i++) {
+        int foo = 50 + i * 25;
+        lineRaw[i].start = Point(foo, 50);
+        lineRaw[i].end = Point(foo, 250);
+        lineCol[i].start = Point(50, foo);
+        lineCol[i].end = Point(250, foo);
+    }
+}
+
+
+void drawMouseAndControl(Mat *toD, HandGesture hg)
+{
+    int n = hg.defects[hg.cMaxId].size();
+    if (n > 0) {
+        Point mouse(0, 0);
+        vector <Vec4i> :: iterator d = hg.defects[hg.cMaxId].begin();
+        while (d != hg.defects[hg.cMaxId].end()) {
+            Vec4i &v = *d;
+            Point pFar(hg.contours[hg.cMaxId][v[2]]);
+            mouse.x += pFar.x;
+            mouse.y += pFar.y;
+            d++;
+        }
+        mouse.x /= n;
+        mouse.y /= n;
+        line(*toD, Point(mouse.x-5, mouse.y-5), Point(mouse.x+5, mouse.y+5),
+             Scalar(0, 0, 255), 3);
+        line(*toD, Point(mouse.x-5, mouse.y+5), Point(mouse.x+5, mouse.y-5),
+             Scalar(0, 0, 255), 3);
     }
 }

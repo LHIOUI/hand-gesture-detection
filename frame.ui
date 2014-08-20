@@ -69,9 +69,12 @@
       </widget>
      </item>
      <item>
-      <widget class="QCheckBox" name="checkBox_6">
+      <widget class="QCheckBox" name="checkBoxMouse">
        <property name="text">
         <string>mouse on/off</string>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
        </property>
       </widget>
      </item>
@@ -120,9 +123,12 @@
      <item>
       <layout class="QGridLayout" name="gridLayout">
        <item row="0" column="0">
-        <widget class="QCheckBox" name="checkBox_3">
+        <widget class="QCheckBox" name="checkBoxGrid">
          <property name="text">
           <string>grid</string>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
          </property>
         </widget>
        </item>
@@ -160,6 +166,9 @@
         <widget class="QCheckBox" name="information">
          <property name="text">
           <string>information</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
