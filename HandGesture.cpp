@@ -32,12 +32,11 @@ float HandGesture::getAngle(Point p1, Point p0, Point p2)
 
 void HandGesture::removeOtherPoints(vector<Vec4i>defects)
 {
-    Vec4i tmp;
     float tolerance = bounRect.width/6;
 
-    int i, j;
-    for (i = 0; i < (int)defects.size(); i++) {
-        for (j = i; j < (int)defects.size(); j++) {
+    unsigned int i, j;
+    for (i = 0; i < defects.size(); i++) {
+        for (j = i; j < defects.size(); j++) {
             Point pStart(contours[cMaxId][defects[i][0]]);
             Point pEnd(contours[cMaxId][defects[i][1]]);
             Point pStart2(contours[cMaxId][defects[j][0]]);

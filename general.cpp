@@ -2,52 +2,37 @@
 #include "stdio.h"
 
 vector <RecSample> recsamples;
-int avrColor[SAMPLES][3];
-int trackLower[SAMPLES][3];
-int trackUpper[SAMPLES][3];
+int  avrColor[SAMPLES][3];
+int  trackLower[SAMPLES][3];
+int  trackUpper[SAMPLES][3];
+bool contourFlag = false;
 
-void getRecPos(AccessUnit *m)
+void getRecPos()
 {
 //    printf("int getRecPos().\n");
     recsamples.push_back(RecSample( Point(150, 150),
-        Point(150+square_len, 150+square_len), m->frame));
+        Point(150+square_len, 150+square_len)));
     recsamples.push_back(RecSample( Point(160, 150),
-        Point(160+square_len, 150+square_len), m->frame));
+        Point(160+square_len, 150+square_len)));
     recsamples.push_back(RecSample( Point(140, 150),
-        Point(140+square_len, 150+square_len), m->frame));
+        Point(140+square_len, 150+square_len)));
 
     recsamples.push_back(RecSample( Point(155, 170),
-        Point(155+square_len, 170+square_len), m->frame));
+        Point(155+square_len, 170+square_len)));
     recsamples.push_back(RecSample( Point(145, 170),
-        Point(145+square_len, 170+square_len), m->frame));
+        Point(145+square_len, 170+square_len)));
 
     recsamples.push_back(RecSample( Point(155, 130),
-        Point(155+square_len, 130+square_len), m->frame));
+        Point(155+square_len, 130+square_len)));
     recsamples.push_back(RecSample( Point(145, 130),
-        Point(145+square_len, 130+square_len), m->frame));
-
-//    recsamples.push_back(RecSample( Point(col/2, row/3*2),
-//        Point(col/2+square_len, row/3*2+square_len), m->frame));
-//    recsamples.push_back(RecSample( Point(col/16*7, row/3*2),
-//        Point(col/16*7+square_len, row/3*2+square_len), m->frame));
-//    recsamples.push_back(RecSample( Point(col/16*9, row/3*2),
-//        Point(col/16*9+square_len, row/3*2+square_len), m->frame));
-
-//    recsamples.push_back(RecSample( Point(col/20*11, row/2),
-//        Point(col/20*11+square_len, row/2+square_len), m->frame));
-//    recsamples.push_back(RecSample( Point(col/20*9, row/2),
-//        Point(col/20*9+square_len, row/2+square_len), m->frame));
-
-//    recsamples.push_back(RecSample( Point(col/24*13, row/3),
-//        Point(col/24*13+square_len, row/3+square_len), m->frame));
-//    recsamples.push_back(RecSample( Point(col/24*11, row/3),
-//        Point(col/24*11+square_len, row/3+square_len), m->frame));
+        Point(145+square_len, 130+square_len)));
 }
 
 void readyForPalm(AccessUnit *m)
 {
 //    printf("in readyForPalm().\n");
 //    printf("Cover rectangles with palm.\n");
+
     int j;
     for(j = 0; j < SAMPLES; j++) {
         recsamples[j].draw(m->frame);
@@ -167,8 +152,9 @@ void genBinary(AccessUnit *m)
 
 int findBiggestContour(vector < vector <Point> > contours)
 {
-    int biggest = -1, size = 0;
-    int i;
+    int biggest = -1;
+    unsigned int size = 0;
+    unsigned int i;
     for (i = 0; i < contours.size(); i++) {
         if (contours[i].size() > size) {
             size = contours[i].size();
@@ -192,25 +178,25 @@ void drawHandContours(AccessUnit *m, HandGesture *hg)
 
 void genContours(AccessUnit *m, HandGesture *hg)
 {
+    contourFlag = false;
     findContours(m->binary, hg->contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
     hg->initVec();
     hg->cMaxId = findBiggestContour(hg->contours);
 
-    printf("hg->contours.size()=%d hg->contours[hg->cMaxId].size()=%d\n", hg->contours[hg->cMaxId].size(), hg->contours[hg->cMaxId].size());
+//    printf("hg->contours.size()=%d hg->contours[hg->cMaxId].size()=%d\n", hg->contours[hg->cMaxId].size(), hg->contours[hg->cMaxId].size());
     if (hg->contours[hg->cMaxId].size() < 200) hg->cMaxId = -1;
     if (hg->cMaxId != -1 ) {
+        contourFlag = true;
+
         hg->bounRect = boundingRect(hg->contours[hg->cMaxId]);
         convexHull(Mat(hg->contours[hg->cMaxId]), hg->hullPoint[hg->cMaxId], false, true);
         convexHull(Mat(hg->contours[hg->cMaxId]), hg->hullInt[hg->cMaxId], false, false);
         approxPolyDP(Mat(hg->hullPoint[hg->cMaxId]), hg->hullPoint[hg->cMaxId], 18, true);
 
         if (hg->contours[hg->cMaxId].size() > 3) {
-            printf("hullInt size = %d\n", hg->hullInt.size());
+//            printf("hullInt size = %d\n", hg->hullInt.size());
             convexityDefects(hg->contours[hg->cMaxId], hg->hullInt[hg->cMaxId], hg->defects[hg->cMaxId]);
             hg->eleminateDefects();
         }
-
-        bool hand = hg->isHand();
-        drawHandContours(m, hg);
     }
 }

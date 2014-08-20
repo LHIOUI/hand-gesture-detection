@@ -8,7 +8,7 @@ RecSample::RecSample()
     right_down = Point(0, 0);
 }
 
-RecSample::RecSample(Point lu, Point rd, Mat src)
+RecSample::RecSample(Point lu, Point rd)
 {
     left_up    = lu;
     right_down = rd;

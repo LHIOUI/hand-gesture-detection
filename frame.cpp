@@ -5,8 +5,7 @@ using namespace cv;
 
 enum Status { NORMAL, COLORCOLLECTION, GETAVERCOLOR,
              GESTUREDETECT } STATUS;
-bool binaryFlag = false;
-int sCount = 0;
+int  sCount = 0;
 
 Frame::Frame(QWidget *parent) :
     QWidget(parent),
@@ -61,6 +60,8 @@ void Frame::readFrame()
             break;
         case GESTUREDETECT:
             genBinary(&m);
+            if (ui->radioButton_2->isChecked())
+                cvtColor(m.binary, m.binaryDisplay, CV_GRAY2RGB);
             ui->radioButton_2->setEnabled(true);
             genContours(&m, &hg);
             break;
@@ -68,27 +69,62 @@ void Frame::readFrame()
             break;
     }
 
-
-    QImage img;
-    if (binaryFlag) {
-        cvtColor(m.binary, m.binary, CV_GRAY2RGB);
-        img = QImage((unsigned char *)m.binary.data, m.binary.cols,
-                m.binary.rows, QImage::Format_RGB888);
-//        imshow("binary", m.binary);
-    } else {
+    Mat toD;
+    if (ui->radioButton_2->isChecked()) {
+        toD = m.binaryDisplay;
+    } else if (ui->radio_source->isChecked()){
         cvtColor(m.frame, m.frame, CV_BGR2RGB);
-        img = QImage((unsigned char *)m.frame.data, m.frame.cols,
-                m.frame.rows, QImage::Format_RGB888);
+        toD = m.frame;
     }
+
+    if  (hg.isHand() && contourFlag && STATUS == GESTUREDETECT) {
+        if (ui->checkBoxContour->isChecked())
+            drawContours(toD, hg.contours, hg.cMaxId,
+                Scalar(0, 0, 255), 2, 8);
+        if (ui->checkBoxPoly->isChecked())
+            drawContours(toD, hg.hullPoint, hg.cMaxId,
+                Scalar(255, 0, 0), 2, 8);
+        if (ui->checkBoxDefect->isChecked()) {
+            printf("hg.defects[hg.cMaxId].size()=%d.\n", hg.defects[hg.cMaxId].size());
+            if (hg.defects[hg.cMaxId].size() > 2) {
+                vector <Vec4i> :: iterator d = hg.defects[hg.cMaxId].begin();
+                while (d != hg.defects[hg.cMaxId].end()) {
+                    Vec4i &v = *d;
+                    int s = hg.contours[hg.cMaxId].size();
+printf("v: %d %d %d s:%d\n", v[1], v[2], v[3], s);
+//                    if (v[1] < s)
+                    Point pStart(hg.contours[hg.cMaxId][v[1]]);
+                    printf("got pStart\n");
+//                    if (v[2] < s)
+                    Point pEnd(hg.contours[hg.cMaxId][v[2]]);
+                    printf("got pEnd\n");
+//                    if (v[3] < s)
+//                    Point pFar(hg.contours[hg.cMaxId][v[3]]);
+//                    printf("got pFar\n");
+
+//    printf("pStart:(%d, %d)  pEnd:(%d, %d) pFar:(%d, %d)\n", pStart.x, pStart.y, pEnd.x, pEnd.y, pFar.x, pFar.y);
+    //                circle(toD, pFar, 4, Scalar(0, 255, 0), 4);
+                    circle(toD, pStart, 4, Scalar(255, 0, 0), 4);
+                    circle(toD, pEnd, 4, Scalar(0, 255, 0), 4);
+                    d++;
+//    printf("will out of while\n") ;
+                }
+            }
+        }
+    }
+
+    QImage img((unsigned char *)toD.data, toD.cols,
+            toD.rows, QImage::Format_RGB888);
+
+
     ui->pic->setPixmap(QPixmap::fromImage(img));
 }
 
 void Frame::on_pushButton_3_clicked()
 {
-    getRecPos(&m);
+    getRecPos();
     STATUS = COLORCOLLECTION;
     if (ui->radioButton_2->isChecked()) {
-        on_radio_source_clicked();
         ui->radioButton_2->setChecked(false);
         ui->radio_source->setChecked(true);
     }
@@ -97,8 +133,10 @@ void Frame::on_pushButton_3_clicked()
 
 void Frame::on_pushButton_2_clicked()
 {
-    initTrackbar();
-    STATUS = GETAVERCOLOR;
+    if (STATUS == COLORCOLLECTION) {
+        initTrackbar();
+        STATUS = GETAVERCOLOR;
+    }
 }
 
 void Frame::on_pushButton_clicked()
@@ -110,14 +148,4 @@ void Frame::on_pushButton_clicked()
     createTrackbar("upper2", "trackbars", &trackUpper[0][1], 255);
     createTrackbar("lower3", "trackbars", &trackLower[0][2], 255);
     createTrackbar("upper3", "trackbars", &trackUpper[0][2], 255);
-}
-
-void Frame::on_radioButton_2_clicked()
-{
-    binaryFlag = true;
-}
-
-void Frame::on_radio_source_clicked()
-{
-    binaryFlag = false;
 }

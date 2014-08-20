@@ -10,7 +10,7 @@ public:
     Point  left_up, right_down;
 
     RecSample();
-    RecSample(Point lu, Point rd, Mat src);
+    RecSample(Point lu, Point rd);
     void draw(Mat src);
     void getSample(Mat src);
 

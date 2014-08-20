@@ -8,6 +8,7 @@ class AccessUnit {
 public:
     Mat frame;
     Mat binary;
+    Mat binaryDisplay;
     vector <Mat> binaryList;
     VideoCapture cap;
 };

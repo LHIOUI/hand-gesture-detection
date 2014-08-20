@@ -11,10 +11,11 @@
 #define square_len 3
 
 extern vector <RecSample> recsamples;
-extern int trackLower[SAMPLES][3];
-extern int trackUpper[SAMPLES][3];
+extern int  trackLower[SAMPLES][3];
+extern int  trackUpper[SAMPLES][3];
+extern bool contourFlag;
 
-extern void getRecPos(AccessUnit *m);
+extern void getRecPos();
 extern void readyForPalm(AccessUnit *m);
 extern void initTrackbar();
 extern void getAverageColor(AccessUnit *m, int s);
