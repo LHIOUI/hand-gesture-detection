@@ -164,18 +164,6 @@ int findBiggestContour(vector < vector <Point> > contours)
     return biggest;
 }
 
-void drawHandContours(AccessUnit *m, HandGesture *hg)
-{
-//	printf("hg->hullPoint.size()=%d\n", hg->hullPoint.size());
-//	printf("%d \n", hg->hullPoint[hg->cMaxId][0].x);
-//	printf("hg->contours[hg->cMaxId].size()=%d\n", hg->contours[hg->cMaxId].size());
-
-    drawContours(m->frame, hg->hullPoint, hg->cMaxId,
-        Scalar(0, 0, 255), 2, 8);
-
-    rectangle(m->frame, hg->bounRect.tl(), hg->bounRect.br(), Scalar(0, 0, 200));
-}
-
 void genContours(AccessUnit *m, HandGesture *hg)
 {
     contourFlag = false;
@@ -183,7 +171,6 @@ void genContours(AccessUnit *m, HandGesture *hg)
     hg->initVec();
     hg->cMaxId = findBiggestContour(hg->contours);
 
-//    printf("hg->contours.size()=%d hg->contours[hg->cMaxId].size()=%d\n", hg->contours[hg->cMaxId].size(), hg->contours[hg->cMaxId].size());
     if (hg->contours[hg->cMaxId].size() < 200) hg->cMaxId = -1;
     if (hg->cMaxId != -1 ) {
         contourFlag = true;
@@ -194,9 +181,28 @@ void genContours(AccessUnit *m, HandGesture *hg)
         approxPolyDP(Mat(hg->hullPoint[hg->cMaxId]), hg->hullPoint[hg->cMaxId], 18, true);
 
         if (hg->contours[hg->cMaxId].size() > 3) {
-//            printf("hullInt size = %d\n", hg->hullInt.size());
             convexityDefects(hg->contours[hg->cMaxId], hg->hullInt[hg->cMaxId], hg->defects[hg->cMaxId]);
             hg->eleminateDefects();
         }
+
+        if (hg->isHand()) {
+            hg->getFingerTips();
+        }
+    }
+}
+
+void drawConvexityDefect(Mat *toD, HandGesture hg)
+{
+    vector <Vec4i> :: iterator d = hg.defects[hg.cMaxId].begin();
+    while (d != hg.defects[hg.cMaxId].end()) {
+        Vec4i &v = *d;
+        Point pStart(hg.contours[hg.cMaxId][v[0]]);
+        Point pEnd(hg.contours[hg.cMaxId][v[1]]);
+        Point pFar(hg.contours[hg.cMaxId][v[2]]);
+
+        circle(*toD, pStart, 4, Scalar(255, 0, 0), 4);
+        circle(*toD, pEnd, 4, Scalar(0, 255, 0), 4);
+        circle(*toD, pFar, 4, Scalar(0, 0, 255), 4);
+        d++;
     }
 }

@@ -54,8 +54,8 @@ void HandGesture::removeOtherPoints(vector<Vec4i>defects)
 
 void HandGesture::eleminateDefects()
 {
-    int tolerance = bounRect.height/5;
-    float angleTolerance = 95;
+    int tolerance = bounRect.height/6;
+    float angleTolerance = 100;
     vector < Vec4i > newDefects;
 
     vector<Vec4i>::iterator i = defects[cMaxId].begin();
@@ -97,4 +97,87 @@ bool HandGesture::isHand()
     }
 
     return isHand;
+}
+
+void HandGesture::getFingerTips()
+{
+    fingerTips.clear();
+    int i = 0;
+    vector <Vec4i> :: iterator d = defects[cMaxId].begin();
+    while (d != defects[cMaxId].end()) {
+        Vec4i &v = (*d);
+        if (i == 0) {
+            Point pStart(contours[cMaxId][v[0]]);
+            fingerTips.push_back(pStart);
+            i++;
+        }
+        Point pEnd(contours[cMaxId][v[1]]);
+        fingerTips.push_back(pEnd);
+        i++;
+        d++;
+    }
+//    printf("fingerTips.size()=%d\n", fingerTips.size());
+    if (fingerTips.size() == 0) {
+        checkForOneFinger();
+    }
+}
+
+void HandGesture::getFingerNumber()
+{
+    if (bounRect.height > m.frame.rows / 2 && numNoFinger > 12
+            && isHand()) {
+        fingerNumbers.push_back(fingerTips.size());
+        if (frameNum > 12) {
+            numNoFinger = 0;
+            frameNum    = 0;
+            compute();
+            fingerNumbers.clear();
+        } else {
+            frameNum++;
+        }
+    } else {
+        numNoFinger++;
+    }
+}
+
+void HandGesture::checkForOneFinger()
+{
+//    printf("in checkForOnFinger()\n");
+    int yTolerance = bounRect.height / 6;
+    Point lowPoint;
+    lowPoint.y = m.frame.rows;
+    vector <Point> :: iterator d = contours[cMaxId].begin();
+    while (d != contours[cMaxId].end()) {
+        Point &v = *d;
+        if (v.y < lowPoint.y) {
+            lowPoint = v;
+        }
+        d++;
+    }
+    d = hullPoint[cMaxId].begin();
+    while (d != hullPoint[cMaxId].end()) {
+        Point &v = *d;
+        if ( (v.y < lowPoint.y + yTolerance) && (v.y != lowPoint.y)
+                && (v.x != lowPoint.x))
+            return;
+        d++;
+    }
+    fingerTips.push_back(lowPoint);
+    //    printf("fingerTip: %d\n", fingerTips.size());
+}
+
+void HandGesture::compute()
+{
+    int flag[7] = { 0 };
+    unsigned int i;
+    for (i = 0; i < fingerNumbers.size(); i++) {
+        flag[fingerNumbers[i]]++;
+    }
+    int max = 0;
+    for (i = 1; i < 7; i++) {
+        if (flag[i] > max) {
+            max = flag[i];
+            numToDraw = i;
+        }
+    }
 }

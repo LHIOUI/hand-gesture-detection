@@ -17,6 +17,8 @@ public:
     vector <vector <int> >   hullInt;
     vector <vector <Vec4i> > defects;
     vector <Point> fingerTips;
+    int  frameNum;
+    int  numToDraw;
     int  nDefects;
     int  cMaxId;
     Rect bounRect;
@@ -27,11 +29,19 @@ public:
     void initVec();
     void eleminateDefects();
     bool isHand();
+    void getFingerTips();
+    void getFingerNumber();
+
 
 private:
     float distance(Point p1, Point p2);
     float getAngle(Point p1, Point p0, Point p2);
     void  removeOtherPoints(vector<Vec4i>defects);
+    void  checkForOneFinger();
+    void  compute();
+
+    int   numNoFinger;
+    vector <int> fingerNumbers;
 };
 
 #endif // HANDGESTURE_H

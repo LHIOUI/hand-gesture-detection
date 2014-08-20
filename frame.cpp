@@ -64,6 +64,7 @@ void Frame::readFrame()
                 cvtColor(m.binary, m.binaryDisplay, CV_GRAY2RGB);
             ui->radioButton_2->setEnabled(true);
             genContours(&m, &hg);
+            hg.getFingerNumber();
             break;
         default:
             break;
@@ -85,31 +86,10 @@ void Frame::readFrame()
             drawContours(toD, hg.hullPoint, hg.cMaxId,
                 Scalar(255, 0, 0), 2, 8);
         if (ui->checkBoxDefect->isChecked()) {
-            printf("hg.defects[hg.cMaxId].size()=%d.\n", hg.defects[hg.cMaxId].size());
-            if (hg.defects[hg.cMaxId].size() > 2) {
-                vector <Vec4i> :: iterator d = hg.defects[hg.cMaxId].begin();
-                while (d != hg.defects[hg.cMaxId].end()) {
-                    Vec4i &v = *d;
-                    int s = hg.contours[hg.cMaxId].size();
-printf("v: %d %d %d s:%d\n", v[1], v[2], v[3], s);
-//                    if (v[1] < s)
-                    Point pStart(hg.contours[hg.cMaxId][v[1]]);
-                    printf("got pStart\n");
-//                    if (v[2] < s)
-                    Point pEnd(hg.contours[hg.cMaxId][v[2]]);
-                    printf("got pEnd\n");
-//                    if (v[3] < s)
-//                    Point pFar(hg.contours[hg.cMaxId][v[3]]);
-//                    printf("got pFar\n");
+            drawConvexityDefect(&toD, hg);
+        }
+        if (ui->information->isChecked()) {
 
-//    printf("pStart:(%d, %d)  pEnd:(%d, %d) pFar:(%d, %d)\n", pStart.x, pStart.y, pEnd.x, pEnd.y, pFar.x, pFar.y);
-    //                circle(toD, pFar, 4, Scalar(0, 255, 0), 4);
-                    circle(toD, pStart, 4, Scalar(255, 0, 0), 4);
-                    circle(toD, pEnd, 4, Scalar(0, 255, 0), 4);
-                    d++;
-//    printf("will out of while\n") ;
-                }
-            }
         }
     }
 

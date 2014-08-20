@@ -21,5 +21,6 @@ extern void initTrackbar();
 extern void getAverageColor(AccessUnit *m, int s);
 extern void genBinary(AccessUnit *m);
 extern void genContours(AccessUnit *m, HandGesture *hg);
+extern void drawConvexityDefect(Mat *toD, HandGesture hg);
 
 #endif // GENERAL_H
