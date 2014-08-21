@@ -4,6 +4,7 @@
 #include "string"
 #include "iostream"
 #include "sstream"
+#include "windows.h"
 
 vector <RecSample> recsamples;
 int  avrColor[SAMPLES][3];
@@ -34,10 +35,10 @@ void getRecPos()
         Point(145+square_len, 130+square_len)));
 }
 
-void readyForPalm(AccessUnit *m)
+void readyForPalm(AccessUnit *m, HandGesture *hg)
 {
-//    printf("in readyForPalm().\n");
-//    printf("Cover rectangles with palm.\n");
+    hg->numToDraw = 0;
+    hg->bounRect  = Rect(0, 0, 0, 0);
 
     int j;
     for(j = 0; j < SAMPLES; j++) {
@@ -77,9 +78,10 @@ void calc(RecSample rs, int ac[3], int flag)
     }
 }
 
-void getAverageColor(AccessUnit *m, int s)
+void getAverageColor(AccessUnit *m, int s, HandGesture *hg)
 {
-//    printf("in getAverageColor().\n");
+    hg->numToDraw = 0;
+    hg->bounRect  = Rect(0, 0, 0, 0);
     int j;
     cvtColor(m->frame, m->frame, CV_BGR2HLS);
     for (j = 0; j < SAMPLES; j++) {
@@ -89,7 +91,6 @@ void getAverageColor(AccessUnit *m, int s)
     }
 
     cvtColor(m->frame, m->frame, CV_HLS2BGR);
-//    printf("Finding average color of hand.\n");
 }
 
 void initTrackbar()
@@ -259,29 +260,68 @@ void drawInformation(Mat *toD, HandGesture hg)
 
 void drawGrid(Mat *toD)
 {
-    rectangle(*toD, area.start, area.end, Scalar(240, 236, 124), 2);
+//    rectangle(*toD, area.start, area.end, Scalar(240, 236, 124), 2);
     int i;
-    for (i = 0; i < 9; i++) {
-        line(*toD, lineRaw[i].start, lineRaw[i].end, Scalar(172, 224, 154));
-        line(*toD, lineCol[i].start, lineCol[i].end, Scalar(172, 224, 154));
+    for (i = 0; i < 6; i++) {
+        if (i == 2 || i == 3) {
+            line(*toD, lineRaw[i].start, lineRaw[i].end, Scalar(240, 236, 124), 2);
+            line(*toD, lineCol[i].start, lineCol[i].end, Scalar(240, 236, 124), 2);
+        } else {
+            line(*toD, lineRaw[i].start, lineRaw[i].end, Scalar(172, 224, 154));
+            line(*toD, lineCol[i].start, lineCol[i].end, Scalar(172, 224, 154));
+        }
     }
 }
 
 
 void initMouseArea()
 {
-    area.start = Point(125, 125);
-    area.end = Point(175, 175);
     int i;
-    for (i = 0; i < 9; i++) {
-        int foo = 50 + i * 25;
-        lineRaw[i].start = Point(foo, 50);
-        lineRaw[i].end = Point(foo, 250);
-        lineCol[i].start = Point(50, foo);
-        lineCol[i].end = Point(250, foo);
+    for (i = 0; i < 6; i++) {
+        int foo = 85 + i * 26;
+        lineRaw[i].start = Point(foo, 85);
+        lineRaw[i].end = Point(foo, 215);
+        lineCol[i].start = Point(85, foo);
+        lineCol[i].end = Point(215, foo);
     }
 }
 
+int sign(int x)
+{
+    if (x == 0) {
+        return 0;
+    } else if (x < 0) {
+        return -1;
+    }
+    return 1;
+}
+
+void mouseControl(Point mouse, HandGesture hg)
+{
+    if (mouse.x > 85 && mouse.x < 215 && mouse.y > 85 && mouse.y < 215) {
+        POINT pSrc;
+        if (!GetCursorPos(&pSrc)) {
+            printf("failed to get position of cursors.\n");
+            return;
+        }
+        printf("cursors position: x=%d\ty=%d\n", pSrc.x, pSrc.y);
+        int x   = (mouse.x - 150) / 13;
+        if (x == 2 || x == 4) x--;
+        pSrc.x += sign(x) * (x * x * x * x + 8);
+        int y   = (mouse.y - 150) / 25;
+        if (y == 2 || y == 4) y--;
+        pSrc.y += sign(y) * (y * y * y * y + 8);
+        printf("*****  x=%d y=%d\n", x, y);
+        if (!SetCursorPos(pSrc.x, pSrc.y)) {
+            printf("failed to set position of cursors.\n");
+        }
+//        if (x != 0 || y != 0) {
+            printf("move cursors to: x=%d\ty=%d\n", pSrc.x, pSrc.y);
+//        }
+
+    }
+
+}
 
 void drawMouseAndControl(Mat *toD, HandGesture hg)
 {
@@ -302,5 +342,7 @@ void drawMouseAndControl(Mat *toD, HandGesture hg)
              Scalar(0, 0, 255), 3);
         line(*toD, Point(mouse.x-5, mouse.y+5), Point(mouse.x+5, mouse.y-5),
              Scalar(0, 0, 255), 3);
+
+        mouseControl(mouse, hg);
     }
 }

@@ -21,9 +21,9 @@ extern int  trackUpper[SAMPLES][3];
 extern bool contourFlag;
 
 extern void getRecPos();
-extern void readyForPalm(AccessUnit *m);
+extern void readyForPalm(AccessUnit *m, HandGesture *hg);
 extern void initTrackbar();
-extern void getAverageColor(AccessUnit *m, int s);
+extern void getAverageColor(AccessUnit *m, int s, HandGesture *hg);
 extern void genBinary(AccessUnit *m);
 extern void genContours(AccessUnit *m, HandGesture *hg);
 extern void drawConvexityDefect(Mat *toD, HandGesture hg);

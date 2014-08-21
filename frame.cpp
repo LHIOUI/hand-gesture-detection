@@ -50,12 +50,10 @@ void Frame::readFrame()
     hg.nDefects  = 0;
     switch (STATUS) {
         case COLORCOLLECTION:
-            readyForPalm(&m);
-            hg.numToDraw = 0;
+            readyForPalm(&m, &hg);
             break;
         case GETAVERCOLOR:
-            hg.numToDraw = 0;
-            getAverageColor(&m, sCount);
+            getAverageColor(&m, sCount, &hg);
             sCount++;
             if (sCount == 4) {
                 sCount = 0;
@@ -78,6 +76,7 @@ void Frame::readFrame()
     if (ui->radioButton_2->isChecked()) {
         toD = m.binaryDisplay;
     } else if (ui->radio_source->isChecked()){
+//        cvtColor(m.frame, m.frame, CV_BGR2YCrCb);
         cvtColor(m.frame, m.frame, CV_BGR2RGB);
         toD = m.frame;
     }
@@ -104,7 +103,9 @@ void Frame::readFrame()
     if (ui->information->isChecked()) {
         drawInformation(&toD, hg);
     }
-    rectangle(toD, hg.bounRect, Scalar(255, 0, 0));
+    if (ui->checkBoxRect->isChecked()) {
+        rectangle(toD, hg.bounRect, Scalar(234, 234, 234));
+    }
 
     QImage img((unsigned char *)toD.data, toD.cols,
             toD.rows, QImage::Format_RGB888);
