@@ -20,6 +20,7 @@ Frame::Frame(QWidget *parent) :
     hg = HandGesture(m);
     initMouseArea();
     on_pushButton_3_clicked();
+    record = 0;
 }
 
 Frame::~Frame()

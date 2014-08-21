@@ -10,6 +10,7 @@ vector <RecSample> recsamples;
 int  avrColor[SAMPLES][3];
 int  trackLower[SAMPLES][3];
 int  trackUpper[SAMPLES][3];
+int  record;
 bool contourFlag = false;
 R    area;
 R    lineRaw[9], lineCol[9];
@@ -319,6 +320,44 @@ void mouseControl(Point mouse, HandGesture hg)
             printf("move cursors to: x=%d\ty=%d\n", pSrc.x, pSrc.y);
 //        }
 
+        switch (hg.nDefects) {
+            case 0:
+                record = 0;
+                break;
+            case 1:
+                if (record == 3) {
+                    mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+                }
+                record = 1;
+                break;
+            case 2:
+                if (record != 2) {
+                    mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+                    mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+                }
+                record = 2;
+                break;
+            case 3:
+                if (record != 3) {
+                    mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+                }
+                record = 3;
+                break;
+            case 4:
+                if (record == 3) {
+                    mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+                }
+                record = 4;
+                break;
+            case 5:
+                if (record == 3) {
+                    mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+                }
+                record = 5;
+                break;
+            default:
+                break;
+        }
     }
 
 }

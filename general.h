@@ -18,6 +18,7 @@ typedef struct {
 extern vector <RecSample> recsamples;
 extern int  trackLower[SAMPLES][3];
 extern int  trackUpper[SAMPLES][3];
+extern int  record;
 extern bool contourFlag;
 
 extern void getRecPos();
