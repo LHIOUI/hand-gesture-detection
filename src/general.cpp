@@ -45,6 +45,10 @@ void readyForPalm(AccessUnit *m, HandGesture *hg)
     for(j = 0; j < SAMPLES; j++) {
         recsamples[j].draw(m->frame);
     }
+    putText(m->frame, "Put your hand cover the green",
+            Point(0, 50), FONT_HERSHEY_PLAIN, 1.1f, Scalar(0, 0, 255), 2);
+    putText(m->frame, "point and click \"colorcollection\"",
+            Point(0, 70), FONT_HERSHEY_PLAIN, 1.1f, Scalar(0, 0, 255), 2);
 }
 
 int getRe(vector <int> arr)
