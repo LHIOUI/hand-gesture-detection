@@ -305,7 +305,7 @@ void mouseControl(Point mouse, HandGesture hg)
             printf("failed to get position of cursors.\n");
             return;
         }
-        printf("cursors position: x=%d\ty=%d\n", pSrc.x, pSrc.y);
+        printf("cursors position: x=%ld\ty=%ld\n", pSrc.x, pSrc.y);
         int x   = (mouse.x - 150) / 13;
         if (x == 2 || x == 4) x--;
         pSrc.x += sign(x) * (x * x * x * x + 8);
@@ -316,9 +316,9 @@ void mouseControl(Point mouse, HandGesture hg)
         if (!SetCursorPos(pSrc.x, pSrc.y)) {
             printf("failed to set position of cursors.\n");
         }
-//        if (x != 0 || y != 0) {
-            printf("move cursors to: x=%d\ty=%d\n", pSrc.x, pSrc.y);
-//        }
+        if (x != 0 || y != 0) {
+            printf("move cursors to: x=%ld\ty=%ld\n", pSrc.x, pSrc.y);
+        }
 
         switch (hg.nDefects) {
             case 0:

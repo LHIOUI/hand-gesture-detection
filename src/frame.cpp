@@ -77,7 +77,6 @@ void Frame::readFrame()
     if (ui->radioButton_2->isChecked()) {
         toD = m.binaryDisplay;
     } else if (ui->radio_source->isChecked()){
-//        cvtColor(m.frame, m.frame, CV_BGR2YCrCb);
         cvtColor(m.frame, m.frame, CV_BGR2RGB);
         toD = m.frame;
     }
