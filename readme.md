@@ -2,7 +2,7 @@
 
 这个 Porject 的编译环境包含了：Qt5.3.1 （MinGW4.8.2、OpenGL）、OpenCV
 
-编译环境搭建可以参看文章：[在 Qt 中使用 opencv](http://7qi.org/opencv/qt-and-opencv/)
+编译环境搭建可以参看文章：[在 Qt 中使用 opencv](http://qiqi8226.com/tech/2014/08/18/qt-and-opencv.html)
 
 ## 程序简介
 
